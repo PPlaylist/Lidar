@@ -1,7 +1,6 @@
 import socket
 from matplotlib import pyplot as plt
 import numpy as np
-import color_arr
 import time
 import gc
 import parse
@@ -63,29 +62,6 @@ def view_pcl(client, time1):
         gc.collect()
     plt.show()
 
-def save_pcd(client, i):
-    lidar_bytes = b""
-    remain_bytes = DATA_RECV_BYTES
-    while remain_bytes > 0:
-        chunk = client.recv(remain_bytes)
-        lidar_bytes += chunk
-        remain_bytes -= len(chunk)
-
-    if len(lidar_bytes) < DATA_RECV_BYTES:
-        print("데이터 수신 실패, 다시 시도...")
-        return  # 데이터가 부족하면 이 시도는 취소
-    
-    point_cloud = np.reshape(np.frombuffer(lidar_bytes, dtype=np.float64), LIDAR_DATA_SHAPE)
-    point_cloud = rm_zero_point(point_cloud)
-
-    if i > 5:
-        with open(f"point_cloud_{i}_{time.localtime().tm_hour}{time.localtime().tm_min}{time.localtime().tm_sec}.pcd", 'w') as f:
-            f.write(parse.HEADER.format(len(point_cloud), len(point_cloud)))
-            point_cloud = np.round(point_cloud, 4)
-            for i in range(len(point_cloud)):
-                f.write(f"{point_cloud[i][0]} {point_cloud[i][1]} {point_cloud[i][2]} {point_cloud[i][3]}\n")
-            print(f"pcd file {i} saved")
-
 def main():
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     LOCALHOST = "127.0.0.1"
@@ -94,8 +70,6 @@ def main():
     print("Connected to server\n")
 
     time1 = time.time()
-    for i in range(7):
-        save_pcd(client, i)
 
     # 시각화 함수 호출
     view_pcl(client, time1)

@@ -4,8 +4,6 @@ import open3d as o3d
 import time
 import parse
 
-# 만약 parse가 공용이라면 import 경로 주의
-
 # 서버에서 전송되는 포인트 클라우드 byte 사이즈
 DATA_RECV_BYTES = 1855521  # parse 결과로 나오는 numpy 배열 크기에 맞게 조정
 LIDAR_DATA_SHAPE = (57984, 4)  # 사용자의 라이다별 포인트 개수 x 채널 (XYZI)
@@ -83,8 +81,11 @@ def main():
     # 카메라 뷰를 어느 정도 설정해두면 편함
     ctr = vis.get_view_control()
     params = ctr.convert_to_pinhole_camera_parameters()
-    # 예시로 z축 기준 멀리 보는 정도 조정
-    params.extrinsic[2, 3] = 30  
+    
+    # extrinsic 행렬을 카피하고 수정 후 재설정
+    extrinsic_copy = np.asarray(params.extrinsic).copy()
+    extrinsic_copy[2, 3] = 30.0  # 원하는 값으로 설정
+    params.extrinsic = extrinsic_copy
     ctr.convert_from_pinhole_camera_parameters(params)
 
     fps_t0 = time.time()
@@ -103,6 +104,11 @@ def main():
         # 4) numpy array로 변환
         point_cloud = np.frombuffer(lidar_bytes, dtype=np.float64)
         point_cloud = np.reshape(point_cloud, LIDAR_DATA_SHAPE)
+
+        # 포인트 클라우드가 비어있는 경우를 체크하고 경고 처리
+        if point_cloud.shape[0] == 0:
+            print("No points received, skipping...")
+            continue
 
         # (선택) 불필요한 점 제거, ROI 등 전처리
         point_cloud = rm_zero_point(point_cloud)

@@ -19,14 +19,14 @@ def get_data_PCL(serverSocket_):
 def main():
     # UDP 소켓 생성 및 바인딩
     UDP_server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    UDP_server_socket.bind(("192.168.0.100", LIDAR_UDP_PORT))  # LiDAR 장치와 맞는 IP, 포트 설정
-    print(f"UDP socket listening on port {LIDAR_UDP_PORT}...")
+    UDP_server_socket.bind(("0.0.0.0", 2368))  # LiDAR 장치와 맞는 IP, 포트 설정
+    print(f"UDP socket listening on port {2368}...")
 
     # TCP 소켓 설정 (수신 데이터를 클라이언트에 전달)
     TCP_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    TCP_server_socket.bind(("127.0.0.1", LIDAR_TCP_PORT))  # 로컬호스트에 연결
+    TCP_server_socket.bind(("127.0.0.1", 999))  # 로컬호스트에 연결
     TCP_server_socket.listen()
-    print(f"TCP server listening on port {LIDAR_TCP_PORT}...")
+    print(f"TCP server listening on port {999}...")
 
     # 클라이언트 연결 수락
     client_socket, addr = TCP_server_socket.accept()
